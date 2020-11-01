@@ -246,7 +246,7 @@ if __name__ == '__main__':
             for row in reader:
                 chores.append(ChoreService(row[0],row[1],row[2]))
         while True:
-            time.sleep(30)
+            time.sleep(86400) #  run once a day
             for chore in chores:
                 chore.supervise_chores()
                 time.sleep(2)
