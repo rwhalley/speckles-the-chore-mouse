@@ -65,10 +65,13 @@ class ChoreService:
         with open("participants.csv") as peeps:
             reader = csv.reader(peeps)
             next(reader) # skip header
-            all_participants = list(reader)
-            recent_winners = self.get_recent_winners(self.chore_type,2)
-            candidates = [x for x in all_participants if x not in recent_winners]
-            winner = random.choice(candidates)
+            choices = list(reader)
+            chore_log = pandas.read_csv("chore_log.csv")
+            filtered_by_chore = chore_log[chore_log['chore_type'] == self.chore_type]
+            if filtered_by_chore.count>=2:
+                recent_winners = self.get_recent_winners(self.chore_type,2)
+                choices = [x for x in choices if x not in recent_winners]
+            winner = random.choice(choices)
             winner = Participant(winner[0],winner[1])
             print("winner")
             print(winner)
@@ -76,7 +79,6 @@ class ChoreService:
 
     def get_recent_winners(self, chore_type, num_winners ):  # Figure out who recently did chores and leave them out
         chore_log = pandas.read_csv("chore_log.csv")
-        print(chore_log['chore_type'])
         filtered_by_chore = chore_log[chore_log['chore_type'] == chore_type]
         #filtered_by_chore = pandas.to_datetime(filtered_by_chore.date)
         #print(filtered_by_chore)
