@@ -29,6 +29,7 @@ class ChoreService:
         self.chore_type = chore_type
         self.chore_text = chore_text
         self.first_time = True
+        self.last_checked = datetime.now()
         self.chore_duration = chore_duration
         self.run()
 
@@ -47,9 +48,8 @@ class ChoreService:
                     print(mail.title)
                     print(mail.body)
                     print(mail.attachments)
-                    splittxt = "> wrote:" #removes thread
+                    splittxt = "> wrote:" #removes lower emails in thread
                     text = mail.body.lower().split(splittxt,1)[0]
-
                     if "yes" in text:
                         return "Completed"
                     if "pass" in text:
