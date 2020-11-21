@@ -8,6 +8,7 @@ import csv
 from email.message import EmailMessage
 from datetime import date, datetime
 import pandas
+import pickle
 
 from participant import Participant
 from chore import Chore
@@ -236,24 +237,25 @@ class ChoreService:
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-
+    pkl_path = 'data.pkl'
     if TEST:
         pass
     else:
-        if os.exists('data.pkl'):
-            # LOAD PICKLE
-            pass
-        chores = []
-        with open("chores.csv", 'r') as chorefile:
-            reader = csv.reader(list(chorefile))
-            header = next(reader) # skip header
-            for row in reader:
-                chores.append(ChoreService(row[0],row[1],row[2])) # create a tracker for each chore
-        while True:
-            time.sleep(86400) #  run once a day
-            for chore in chores:
+        if os.path.exists(pkl_path): # IF PICKLE EXISTS
+            myChores = pickle.load(open(pkl_path, 'wb')) # LOAD PICKLE
+            for chore in myChores:
                 chore.supervise_chores()
-                time.sleep(2)
+            pickle.dump(myChores,open(pkl_path,'wb'))
+            pass
+        else:
+            myChores = []
+            with open("chores.csv", 'r') as chorefile:
+                reader = csv.reader(list(chorefile))
+                header = next(reader) # skip header
+                for row in reader:
+                    myChores.append(ChoreService(row[0],row[1],row[2])) # create a tracker for each chore
+                pickle.dump(myChores,open(pkl_path,'wb'))
+
 
 
 
