@@ -1,5 +1,6 @@
 import smtplib, ssl
 import os
+import re
 import easyimap
 import time
 import random
@@ -49,8 +50,8 @@ class ChoreService:
                         and self.current_chore.chore_type in text:
                     if "yes" in text:
                         df = pandas.read_csv("participants.csv")
-                        parsed_from_addr = mail.from_addr.split("<",1)[1].replace(">","")
-                        self.current_chore.name = df.loc[df.email == text, 'name'].values[0]
+                        parsed_from_addr = re.findall('\S+@\S+',str(mail.from_addr))[0].replace('<','').replace('>','')
+                        self.current_chore.name = df.loc[df.email == parsed_from_addr, 'name'].values[0]
                         self.current_chore.email = parsed_from_addr
                         return "Completed"
                     elif "pass" in text:
