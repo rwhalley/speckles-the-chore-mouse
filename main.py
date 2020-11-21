@@ -41,14 +41,18 @@ class ChoreService:
 
                 if  self.current_chore.chore_id in mail.title:
                     print(mail.from_addr)
+                    print(mail.date)
                     print(mail.to)
                     print(mail.cc)
                     print(mail.title)
                     print(mail.body)
                     print(mail.attachments)
-                    if "yes" in mail.body.lower():
+                    splittxt = "> wrote:" #removes thread
+                    text = mail.body.lower().split(splittxt,1)[0]
+
+                    if "yes" in text:
                         return "Completed"
-                    if "pass" in mail.body.lower():
+                    if "pass" in text:
                         return "Reassign"
                 return False
         except Exception as e:
@@ -255,7 +259,7 @@ if __name__ == '__main__':
         pass
     else:
         if os.path.exists(pkl_path): # IF PICKLE EXISTS
-            myChores = pickle.load(open(pkl_path, 'wb')) # LOAD PICKLE
+            myChores = pickle.load(open(pkl_path, 'rb')) # LOAD PICKLE
             for chore in myChores:
                 chore.supervise_chores()
             pickle.dump(myChores,open(pkl_path,'wb'))
