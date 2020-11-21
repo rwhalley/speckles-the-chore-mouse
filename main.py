@@ -32,23 +32,32 @@ class ChoreService:
         self.run()
 
     def check_mail(self):
-        print("Checking mail...")
-        imapper = easyimap.connect('imap.gmail.com', self.login, self.password)
-        for mail_id in imapper.listids(limit=100):
-            mail = imapper.mail(mail_id)
+        try:
+            print("Checking mail...")
+            imapper = easyimap.connect('imap.gmail.com', self.login, self.password)
+            for mail_id in imapper.listids(limit=100):
+                mail = imapper.mail(mail_id)
 
-            if  self.current_chore.chore_id in mail.title:
-                print(mail.from_addr)
-                print(mail.to)
-                print(mail.cc)
-                print(mail.title)
-                print(mail.body)
-                print(mail.attachments)
-                if "yes" in mail.body.lower():
-                    return "Completed"
-                if "pass" in mail.body.lower():
-                    return "Reassign"
-            return False
+                if  self.current_chore.chore_id in mail.title:
+                    print(mail.from_addr)
+                    print(mail.to)
+                    print(mail.cc)
+                    print(mail.title)
+                    print(mail.body)
+                    print(mail.attachments)
+                    if "yes" in mail.body.lower():
+                        return "Completed"
+                    if "pass" in mail.body.lower():
+                        return "Reassign"
+                return False
+        except Exception as e:
+            logf = open("error.log", "w")
+            logf.write(f'{datetime.now():%Y-%m-%d %H:%M:%S%z}')
+            logf.write("Failed to check mail: {0}\n".format(str(e)))
+            logf.close()
+            print(e)
+        finally:
+            pass
 
     def create_chore(self):
         print("CHORE CREATED")
@@ -226,7 +235,10 @@ class ChoreService:
             print("Message sent!")
 
         except Exception as e:
-            # Print any error messages to stdout
+            logf = open("error.log", "w")
+            logf.write(f'{datetime.now():%Y-%m-%d %H:%M:%S%z}')
+            logf.write("Failed to send mail: {0}\n".format(str(e)))
+            logf.close()
             print(e)
         finally:
             server.quit()
