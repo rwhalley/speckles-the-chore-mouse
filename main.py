@@ -17,8 +17,9 @@ TEST = False
 
 class ChoreService:
     def __init__(self,chore_type,chore_text,chore_duration):
-        self.login = input()
-        self.password = input()
+        login_creds = pandas.read_csv('email_creds.csv')
+        self.login = str(login_creds['email'][0])
+        self.password = str(login_creds['password'][0])
         self.smtp_server = "smtp.gmail.com"
         self.port = 587  # For starttls
         self.day_counter = 0
