@@ -132,5 +132,12 @@ participants.csv
 chore_log.csv
 chores.csv
 email_creds.csv
+
+# other
 .DS_Store
+
+# pickle files
 *.pkl
+
+# trying things sandbox
+sandbox.py

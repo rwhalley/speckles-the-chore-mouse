@@ -9,6 +9,8 @@ from email.message import EmailMessage
 from datetime import date, datetime
 import pandas
 import pickle
+import email.utils
+import time
 
 from participant import Participant
 from chore import Chore
@@ -39,6 +41,20 @@ class ChoreService:
             imapper = easyimap.connect('imap.gmail.com', self.login, self.password)
             for mail_id in imapper.listids(limit=100):
                 mail = imapper.mail(mail_id)
+                splittxt = "> wrote:" #removes lower emails in thread
+                text = mail.body.lower().split(splittxt,1)[0]
+                email_datetime = datetime.fromtimestamp(time.mktime(email.utils.parsedate(mail.date)))
+                if "override" in mail.title \
+                        and (datetime.now()-email_datetime).days<2 \
+                        and self.current_chore.chore_type in text:
+                    if "yes" in text:
+                        df = pandas.read_csv("participants.csv")
+                        parsed_from_addr = mail.from_addr.split("<",1)[1].replace(">","")
+                        self.current_chore.name = df.loc[df.email == text, 'name'].values[0]
+                        self.current_chore.email = parsed_from_addr
+                        return "Completed"
+                    elif "pass" in text:
+                        return "Reassign"
 
                 if  self.current_chore.chore_id in mail.title:
                     print(mail.from_addr)
@@ -48,8 +64,7 @@ class ChoreService:
                     print(mail.title)
                     print(mail.body)
                     print(mail.attachments)
-                    splittxt = "> wrote:" #removes lower emails in thread
-                    text = mail.body.lower().split(splittxt,1)[0]
+
                     if "yes" in text:
                         return "Completed"
                     if "pass" in text:
