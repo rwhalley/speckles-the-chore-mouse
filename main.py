@@ -78,7 +78,7 @@ class ChoreService:
             choices = list(reader)
             chore_log = pandas.read_csv("chore_log.csv")
             filtered_by_chore = chore_log[chore_log['chore_type'] == self.chore_type]
-            if filtered_by_chore.count>=2:
+            if len(filtered_by_chore.index)>=2:
                 recent_winners = self.get_recent_winners(self.chore_type,2)
                 choices = [x for x in choices if x not in recent_winners]
             winner = random.choice(choices)
@@ -123,8 +123,8 @@ class ChoreService:
     def send_reassign_notification(self,chore):
         sender = f'From: Speckles T. Mouse <{self.login}>\n'
         to = f'To: <{chore.email}>\n'
-        subject = f"Subject: I ATE YOUR BEANS AND CHORE IS REASSIGNED - {chore.chore_text} {str(chore.chore_id)}\n"
-        text = f'You have lost the challenge! The mouse overlord (me) will eat your beans and cheez in the mean time and p00p your showers and oven!.... Your chore was reassigned to someone else!\n'
+        subject = f"Subject: I ATE THE BEANS AND CHORE IS REASSIGNED - {chore.chore_text} {str(chore.chore_id)}\n"
+        text = f'You have lost the challenge! The mouse overlord (me) will eat your beans and cheez in the mean time and p00p your showers and oven!.... Your chore was reassigned to another lucky winner..!\n'
 
         message = sender+to+subject+text
 
@@ -211,7 +211,7 @@ class ChoreService:
         self.days_left = int(chore.chore_duration) - (completion_date - start_date).days
         with open("chore_log.csv", 'a') as chore_log:
             writer = csv.writer(chore_log)
-            writer.writerow([chore.chore_id,chore.chore_type,chore.name,completion_date])
+            writer.writerow([chore.chore_id,chore.chore_type,chore.name,chore.email,completion_date])
         self.current_chore = None
         print("CHORE COMPLETED!")
 
