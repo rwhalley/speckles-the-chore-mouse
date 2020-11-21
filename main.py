@@ -145,7 +145,7 @@ class ChoreService:
         sender = f'From: Speckles T. Mouse <{self.login}>\n'
         to = f'To: <{chore.email}>\n'
         subject = f"Subject: CONGRATULATIONS {chore.chore_text} {str(chore.chore_id)}\n"
-        text = f'WINNER!!!11 You have been selected to {chore.chore_text}. You are about to embark on a journey to save Brambleberry from your mouse overlord (me). Do you what it takes... ha ha You have {str(chore.chore_duration)} days to completed this challenge! In any case I will eat all your beans and cheez and all will be sad... but you will have fewer smelly farts. Reply "yes" to this email when you complete this challenge...\n'
+        text = f'WINNER!!!11 You have been selected to {chore.chore_text}. You are about to embark on a journey to save Brambleberry from your mouse overlord (me). Do what it takes... ha ha You have {str(chore.chore_duration)} days to complete this challenge! In any case I will eat all your beans and cheez and all will be sad... but you will have fewer smelly farts. Reply "yes" to this email when you complete this challenge... (or respond "pass" to randomly reassign the chore to someone else)"\n'
 
         message = sender+to+subject+text
 
