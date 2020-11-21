@@ -1,4 +1,5 @@
 import smtplib, ssl
+import os
 import easyimap
 import time
 import random
@@ -43,7 +44,9 @@ class ChoreService:
                 print(mail.body)
                 print(mail.attachments)
                 if "yes" in mail.body.lower():
-                    return True
+                    return "Completed"
+                if "pass" in mail.body.lower():
+                    return "Reassign"
             return False
 
     def create_chore(self):
@@ -168,12 +171,12 @@ class ChoreService:
         if self.current_chore:
             is_chore_overdue = self.check_overdue()
             is_chore_way_overdue = self.check_way_overdue()
-            if(self.check_mail()): #  if Chore was completed and say thank you
+            if(self.check_mail() == "Completed"): #  if Chore was completed and say thank you
                 self.send_thanks(self.current_chore)
                 days_left = self.complete_chore(self.current_chore)
                 if days_left<1:
                     self.send_new_chore(self.create_chore()) #  send out chore to new person if it's time
-            elif is_chore_way_overdue and not self.day_counter:
+            elif (is_chore_way_overdue and not self.day_counter) or (self.check_mail() == "Reassign"):
                 self.send_reassign_notification(self.current_chore)
                 self.current_chore = None
                 self.send_new_chore(self.create_chore()) # reassign chore
@@ -237,12 +240,15 @@ if __name__ == '__main__':
     if TEST:
         pass
     else:
+        if os.exists('data.pkl'):
+            # LOAD PICKLE
+            pass
         chores = []
         with open("chores.csv", 'r') as chorefile:
             reader = csv.reader(list(chorefile))
-            header = next(reader)
+            header = next(reader) # skip header
             for row in reader:
-                chores.append(ChoreService(row[0],row[1],row[2]))
+                chores.append(ChoreService(row[0],row[1],row[2])) # create a tracker for each chore
         while True:
             time.sleep(86400) #  run once a day
             for chore in chores:
