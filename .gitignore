@@ -131,4 +131,6 @@ dmypy.json
 participants.csv
 chore_log.csv
 chores.csv
+email_creds.csv
 .DS_Store
+*.pkl
