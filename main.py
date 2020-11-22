@@ -45,9 +45,19 @@ class ChoreService:
                 splittxt = "> wrote:" #removes lower emails in thread
                 text = mail.body.lower().split(splittxt,1)[0]
                 email_datetime = datetime.fromtimestamp(time.mktime(email.utils.parsedate(mail.date)))
+                print(mail.title)
+                print(text)
+                print(self.current_chore.chore_type)
+                print(datetime.now())
+                print(email_datetime)
+                print(self.last_checked)
+
+
                 if "override" in mail.title \
-                        and (datetime.now()-email_datetime).days<2 \
+                        and (datetime.now()-email_datetime).total_seconds()<((datetime.now()-self.last_checked).total_seconds()) \
                         and self.current_chore.chore_type in text:
+                    print("Override")
+
                     if "yes" in text:
                         df = pandas.read_csv("participants.csv")
                         parsed_from_addr = re.findall('\S+@\S+',str(mail.from_addr))[0].replace('<','').replace('>','')
@@ -55,6 +65,7 @@ class ChoreService:
                         self.current_chore.email = parsed_from_addr
                         return "Completed"
                     elif "pass" in text:
+                        print("Reassign")
                         return "Reassign"
 
                 if  self.current_chore.chore_id in mail.title:
@@ -189,6 +200,9 @@ class ChoreService:
         else:
             return False
 
+    def update_last_checked_time(self):
+        self.last_checked = datetime.now()
+
     def supervise_chores(self):
         print("SUPERVISING")
         # send out chores if first time
@@ -278,6 +292,7 @@ if __name__ == '__main__':
             myChores = pickle.load(open(pkl_path, 'rb')) # LOAD PICKLE
             for chore in myChores:
                 chore.supervise_chores()
+                chore.update_last_checked_time()
             pickle.dump(myChores,open(pkl_path,'wb'))
             pass
         else:
@@ -286,6 +301,9 @@ if __name__ == '__main__':
                 reader = csv.reader(list(chorefile))
                 header = next(reader) # skip header
                 for row in reader:
+                    print(row[0])
+                    print(row[1])
+                    print(row[2])
                     myChores.append(ChoreService(row[0],row[1],row[2])) # create a tracker for each chore
                 pickle.dump(myChores,open(pkl_path,'wb'))
 
