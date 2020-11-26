@@ -21,15 +21,17 @@ Then type "yes" and the chore type. So if the chore was "bathroom", you would ty
 Create a new email to speckles with the word "override" in the email title
 Then type "pass" and the chore type. So if the chore was "bathroom", you would type "pass bathroom" in the email text.
 
-### How often does it send out emails?
+### Frequently Asked Questions:
+
+#### How often does it send out emails?
 
 Every day at a specified time using crontab on a Raspberry Pi.
 
-### Speckles didn't respond, what do I do?
+#### Speckles didn't respond, what do I do?
 
 The script only runs once a day, so you may need to wait! If you still don't get a response, check your email carefully to make sure your response is typed exactly!
 
-### How to host Speckles: Raspberry Pi Wireless Zero W Instructions
+### How to host Speckles in your home: Raspberry Pi Wireless Zero W Instructions
 
 Speckles works well when loaded onto a Raspberry Pi Wireless Zero W connected to your local network.
 
@@ -87,5 +89,5 @@ Append:
 
 `@daily python /home/pi/speckles-the-chore-mouse/main.py`
 
-Congrats! You are now running speckles!
+Congrats! You are now running speckles on a raspberry pi!
 
