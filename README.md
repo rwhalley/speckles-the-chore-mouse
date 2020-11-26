@@ -71,7 +71,7 @@ Ssh into your raspberry pi from your computer while connected to your local wifi
 
 Use `vi` to fill out `email_creds.csv`, `chores.csv`, `participants.csv`
 
-Or `magic-wormhole` the files from your computer's local terminal to your ssh terminal :)
+Or if you don't like using `vi`, `magic-wormhole` the files from your computer's local terminal to your ssh terminal :)
 
 `sudo apt-get install magic-wormhole`
 
