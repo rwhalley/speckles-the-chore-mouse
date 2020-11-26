@@ -41,7 +41,7 @@ Ssh into your raspberry pi from your computer while connected to your local wifi
 
 `ssh pi@raspberrypi.local`
 
-(default password is raspberry)
+(default password is "raspberry" - make sure to change it to a strong password since we will be storing email credentials on the machine using the `passwd` command)
 
 #### Install Git and Clone Repo
 
@@ -87,5 +87,5 @@ Append:
 
 `@daily python /home/pi/speckles-the-chore-mouse/main.py`
 
-
+Congrats! You are now running speckles!
 
