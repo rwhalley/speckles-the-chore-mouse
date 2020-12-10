@@ -12,6 +12,7 @@ import pandas
 import pickle
 import email.utils
 import time
+import copy
 
 from participant import Participant
 from chore import Chore
@@ -27,6 +28,7 @@ class State:
         self.smtp_server = "smtp.gmail.com"
         self.port = 587  # For starttls
         self.day_counter = 0
+        self.queue_chore = True
         self.days_left = None
         self.send_out_interval_in_days = 7 # send weekly emails
         self.current_chore = None
@@ -36,26 +38,56 @@ class State:
         self.last_checked = datetime.now()
         self.chore_duration = chore_duration
 
-class ChoreService:
-    def __init__(self,state):
-        self.state = state
 
+class MailChecker:
+    def __init__(self):
+        self.mail = None
+        login_creds = pandas.read_csv('email_creds.csv')
+        self.login = str(login_creds['email'][0])
+        self.password = str(login_creds['password'][0])
+        self.smtp_server = "smtp.gmail.com"
+        self.port = 587  # For starttls
+
+    def get_mail(self):
+        print("Downloading mail...")
+        try:
+            imapper = easyimap.connect('imap.gmail.com', self.login, self.password)
+            self.mail = []
+            for mail_id in imapper.listids(limit=100):
+                self.mail.append(imapper.mail(mail_id))
+            return self.mail
+        except Exception as e:
+            logf = open("error.log", "w")
+            logf.write(f'{datetime.now():%Y-%m-%d %H:%M:%S%z}')
+            logf.write("Failed to check mail: {0}\n".format(str(e)))
+            logf.close()
+            print(e)
+        finally:
+            return self.mail
+
+
+class ChoreService:
+    def __init__(self,state,mail):
+        self.mail = mail
+        self.state = state
+        self.COMPLETED = 100
 
     def check_mail(self):
         try:
-            print("Checking mail...")
-            imapper = easyimap.connect('imap.gmail.com', self.state.login, self.state.password)
-            for mail_id in imapper.listids(limit=100):
-                mail = imapper.mail(mail_id)
+            print("Parsing mail...")
+            print(self.state.chore_type)
+            print(self.state.current_chore.email)
+            print(self.state.current_chore.chore_id)
+            for mail in self.mail:
                 splittxt = "> wrote:" #removes lower emails in thread
                 text = mail.body.lower().split(splittxt,1)[0]
                 email_datetime = datetime.fromtimestamp(time.mktime(email.utils.parsedate(mail.date)))
-                print(mail.title)
-                print(text)
-                print(self.state.current_chore.chore_type)
-                print(datetime.now())
-                print(email_datetime)
-                print(self.state.last_checked)
+                #print(mail.title)
+                #print(text)
+                #print(self.state.current_chore.chore_type)
+                #print(datetime.now())
+                #print(email_datetime)
+                #print(self.state.last_checked)
 
 
                 if "override" in mail.title \
@@ -68,7 +100,7 @@ class ChoreService:
                         parsed_from_addr = re.findall('\S+@\S+',str(mail.from_addr))[0].replace('<','').replace('>','')
                         self.state.current_chore.name = df.loc[df.email == parsed_from_addr, 'name'].values[0]
                         self.state.current_chore.email = parsed_from_addr
-                        return "Completed"
+                        return self.COMPLETED
                     elif "pass" in text:
                         print("Reassign")
                         return "Reassign"
@@ -83,10 +115,12 @@ class ChoreService:
                     print(mail.attachments)
 
                     if "yes" in text:
-                        return "Completed"
+                        print("COMPLETED")
+                        return self.COMPLETED
                     if "pass" in text:
+                        print("REASSIGN")
                         return "Reassign"
-                return False
+            return False
         except Exception as e:
             logf = open("error.log", "w")
             logf.write(f'{datetime.now():%Y-%m-%d %H:%M:%S%z}')
@@ -114,9 +148,9 @@ class ChoreService:
             choices = list(reader)
             chore_log = pandas.read_csv("chore_log.csv")
             filtered_by_chore = chore_log[chore_log['chore_type'] == self.state.chore_type]
-            if len(filtered_by_chore.index)>=2:
-                recent_winners = self.get_recent_winners(self.state.chore_type,2)
-                choices = [x for x in choices if x not in recent_winners]
+            #if len(filtered_by_chore.index)>=2:
+            #    recent_winners = self.get_recent_winners(self.state.chore_type,2)
+            #    choices = [x for x in choices if x not in recent_winners]
             winner = random.choice(choices)
             winner = Participant(winner[0],winner[1])
             print("winner")
@@ -221,12 +255,13 @@ class ChoreService:
         if self.state.current_chore:
             is_chore_overdue = self.check_overdue()
             is_chore_way_overdue = self.check_way_overdue()
-            if(self.check_mail() == "Completed"): #  if Chore was completed and say thank you
+            result = self.check_mail()
+            if(result == self.COMPLETED): #  if Chore was completed and say thank you
                 self.send_thanks(self.state.current_chore)
-                days_left = self.complete_chore(self.state.current_chore)
-                if days_left<1:
+                self.state.days_left = self.complete_chore(self.state.current_chore)
+                if self.state.days_left<1:
                     self.send_new_chore(self.create_chore()) #  send out chore to new person if it's time
-            elif (is_chore_way_overdue and not self.state.day_counter) or (self.check_mail() == "Reassign"):
+            elif (is_chore_way_overdue and not self.state.day_counter) or (result == "Reassign"):
                 self.send_reassign_notification(self.state.current_chore)
                 self.state.current_chore = None
                 self.send_new_chore(self.create_chore()) # reassign chore
@@ -234,12 +269,10 @@ class ChoreService:
                 self.send_overdue_reminder(self.state.current_chore)
             elif not self.state.day_counter:
                 self.send_reminder(self.state.current_chore)
-            else:
-                pass
         else:
             self.state.days_left = self.state.days_left-1
             if self.state.days_left<1:
-                    self.send_new_chore(self.create_chore())
+                self.send_new_chore(self.create_chore())
 
 
 
@@ -248,6 +281,8 @@ class ChoreService:
         start_date = datetime.strptime(chore.start_date, "%Y-%m-%d").date()
         completion_date = date.today()
         self.state.days_left = int(chore.chore_duration) - (completion_date - start_date).days
+        print("DAYS LEFT")
+        print(self.state.days_left)
         with open("chore_log.csv", 'a') as chore_log:
             writer = csv.writer(chore_log)
             writer.writerow([chore.chore_id,chore.chore_type,chore.name,chore.email,completion_date])
@@ -296,8 +331,10 @@ if __name__ == '__main__':
         if os.path.exists(pkl_path): # IF PICKLE EXISTS
             myChores = pickle.load(open(pkl_path, 'rb')) # LOAD PICKLE
             mice = []
+            checker = MailChecker()
+            mail = checker.get_mail()
             for chore in myChores:
-                speckles = ChoreService(chore)
+                speckles = ChoreService(chore,copy.deepcopy(mail))
                 speckles.supervise_chores()
                 speckles.update_last_checked_time()
                 mice.append(speckles)
@@ -317,7 +354,7 @@ if __name__ == '__main__':
                     print(row[1])
                     print(row[2])
                     chore = State(row[0],row[1],row[2])
-                    speckles = ChoreService(chore)
+                    speckles = ChoreService(chore,[])
                     speckles.run()
                     myChores.append(speckles.state) # create a tracker for each chore
                 pickle.dump(myChores,open(pkl_path,'wb'))
