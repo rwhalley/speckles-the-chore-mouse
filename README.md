@@ -119,7 +119,7 @@ Sometimes, Numpy does not install correctly using raspberry pi using Pip3.
 
 In that case, check the instructions on this website on how to resolve it:
 
-[Numpy Website]: https://numpy.org/devdocs/user/troubleshooting-importerror.html
+[Numpy Raspberry Pi Troubleshooting Website](https://numpy.org/devdocs/user/troubleshooting-importerror.html)
 
 I've found that installing the missing libraries does the trick:
 
