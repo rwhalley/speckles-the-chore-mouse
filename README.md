@@ -93,5 +93,35 @@ The following will run the script once daily:
 
 `@daily python /home/pi/speckles-the-chore-mouse/main.py`
 
+Note: that you may need to activate a virtual environment first, so you may want to consider first creating a bash script, say, bash_run.sh with the following content:
+
+Navigate to code folder:
+
+`cd ~/Code/speckles-the-chore-mouse` 
+
+Activate virtual environment:
+
+`source specklesenv/bin/activate`
+
+Run program:
+
+`python3 main.py`
+
+And then, in your crontab, just run the bash file:
+
+`*/10 * * * * ~/Code/speckles-the-chore-mouse/bash_run.sh`
+
 Congrats! You are now running speckles on a raspberry pi!
+
+#### Debugging
+
+Sometimes, Numpy does not install correctly using raspberry pi using Pip3.
+
+In that case, check the instructions on this website on how to resolve it:
+
+[Numpy Website]: https://numpy.org/devdocs/user/troubleshooting-importerror.html
+
+I've found that installing the missing libraries does the trick:
+
+`sudo apt-get install libatlas-base-dev`
 
