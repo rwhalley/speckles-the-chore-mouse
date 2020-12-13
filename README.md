@@ -1,6 +1,6 @@
 # speckles-the-chore-mouse
 
-<img src="/Users/richwhalley/Documents/GitHub/speckles-the-chore-mouse/img/speckles.png" alt="Apodemus_sylvaticus_bosmuis" style="zoom:40%;" />
+<img src="./img/speckles.png" alt="Apodemus_sylvaticus_bosmuis" style="zoom:40%;" />
 
 Automate chores for 4 or more people by interacting with Speckles The Chore Mouse via email!
 
