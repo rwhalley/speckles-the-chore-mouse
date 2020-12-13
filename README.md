@@ -1,6 +1,6 @@
 # speckles-the-chore-mouse
 
-<img src="/Users/richwhalley/Documents/GitHub/speckles-the-chore-mouse/img/Apodemus_sylvaticus_bosmuis.jpg" alt="Apodemus_sylvaticus_bosmuis" style="zoom:10%;" />
+<img src="/Users/richwhalley/Documents/GitHub/speckles-the-chore-mouse/img/speckles.png" alt="Apodemus_sylvaticus_bosmuis" style="zoom:40%;" />
 
 Automate chores for 4 or more people by interacting with Speckles The Chore Mouse via email!
 
@@ -25,11 +25,11 @@ Then type "pass" and the chore type. So if the chore was "bathroom", you would t
 
 #### How often does it send out emails?
 
-Every day at a specified time using crontab on a Raspberry Pi.
+Speckles checks mail multiple times a day using crontab on a Raspberry Pi.
 
 #### Speckles didn't respond, what do I do?
 
-The script only runs once a day, so you may need to wait! If you still don't get a response, check your email carefully to make sure your response is typed exactly!
+You may need to wait! If you still don't get a response, check your email carefully to make sure your response is typed exactly!
 
 ### How to host Speckles in your home: Raspberry Pi Wireless Zero W Instructions
 
@@ -81,11 +81,15 @@ Or if you don't like using `vi`, `magic-wormhole` the files from your computer's
 
 #### Setup Crontab 
 
-Crontab allows Speckles to check the mail once every day:
+Crontab allows Speckles to check the mail periodically every day:
 
 `crontab -e`
 
-Append:
+The following will run the script once every 10 minutes:
+
+`*/10 * * * * /usr/bin/python ~Code/speckles-the-chore-mouse/main.py`
+
+The following will run the script once daily:
 
 `@daily python /home/pi/speckles-the-chore-mouse/main.py`
 
