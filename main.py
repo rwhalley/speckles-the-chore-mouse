@@ -37,6 +37,7 @@ class State:
         self.first_time = True
         self.last_checked = datetime.now()
         self.chore_duration = chore_duration
+        self.reminder_sent_today = False
 
 
 class MailChecker:
@@ -148,9 +149,9 @@ class ChoreService:
             choices = list(reader)
             chore_log = pandas.read_csv("chore_log.csv")
             filtered_by_chore = chore_log[chore_log['chore_type'] == self.state.chore_type]
-            #if len(filtered_by_chore.index)>=2:
-            #    recent_winners = self.get_recent_winners(self.state.chore_type,2)
-            #    choices = [x for x in choices if x not in recent_winners]
+            if len(filtered_by_chore.index)>=2:
+                recent_winners = self.get_recent_winners(self.state.chore_type,2)
+                choices = [x for x in choices if x not in recent_winners]
             winner = random.choice(choices)
             winner = Participant(winner[0],winner[1])
             print("winner")
@@ -194,7 +195,7 @@ class ChoreService:
         sender = f'From: Speckles T. Mouse <{self.state.login}>\n'
         to = f'To: <{chore.email}>\n'
         subject = f"Subject: I ATE THE BEANS AND CHORE IS REASSIGNED - {chore.chore_text} {str(chore.chore_id)}\n"
-        text = f'You have lost the challenge! The mouse overlord (me) will eat your beans and cheez in the mean time and p00p your showers and oven!.... Your chore was reassigned to another lucky winner..!\n'
+        text = f'You have lost the challenge! The mouse overlord (me) will eat your beans and cheez in the mean time and p00p your showers and oven!.... Your chore was reassigned to another lucky winner..!\n\n You do not need to respond to this email.'
 
         message = sender+to+subject+text
 
@@ -204,7 +205,7 @@ class ChoreService:
         sender = f'From: Speckles T. Mouse <{self.state.login}>\n'
         to = f'To: <{chore.email}>\n'
         subject = f"Subject: CHORE IS OVERDUE BUT NOT CHEEZE {chore.chore_text} {str(chore.chore_id)}\n"
-        text = f'Your challenge is overdue by {str(-int(self.get_days_left(self.state.current_chore)))} cheese cycles (you humans are too silly to know this means what you call days) Did you {chore.chore_text}? Respond "yes" to let your mouse overlord (me) know that you crushed this challenge....\n'
+        text = f'Your challenge is overdue by {str(-int(self.get_days_left(self.state.current_chore)))} cheese cycles (you humans are too silly to know this means what you call days) \n\n Did you {chore.chore_text}? \n\nRespond "yes" to let your mouse overlord (me) know that you crushed this challenge....\n'
 
         message = sender+to+subject+text
 
@@ -215,7 +216,7 @@ class ChoreService:
         sender = f'From: Speckles T. Mouse <{self.state.login}>\n'
         to = f'To: <{chore.email}>\n'
         subject = f"Subject: CONGRATULATIONS {chore.chore_text} {str(chore.chore_id)}\n"
-        text = f'WINNER!!!11 You have been selected to {chore.chore_text}. You are about to embark on a journey to save Brambleberry from your mouse overlord (me). Do what it takes... ha ha You have {str(chore.chore_duration)} days to complete this challenge! In any case I will eat all your beans and cheez and all will be sad... but you will have fewer smelly farts. Reply "yes" to this email when you complete this challenge... (or respond "pass" to randomly reassign the chore to someone else)"\n'
+        text = f'WINNER!!!11 You have been selected to {chore.chore_text}. You are about to embark on a journey to clean Brambleberry before your mouse overlord (me) takes over the land. Do what it takes... ha ha \n\nYou have {str(chore.chore_duration)} days to complete this challenge! \n\nIn any case I will eat all your beans and cheez and all will be mine... \n\nNote: You do not have to reply to this email right now.\nYou will receive weekly reminders until you complete or reassign the chore.\nReply "yes" to this email when you complete this challenge... \nRespond "pass" to randomly reassign this chore to someone else if you are not going to be around.\nIf you wait {str(chore.chore_duration*2)} days, your chore will be considered way overdue and automatically be reassigned.'
 
         message = sender+to+subject+text
 
@@ -235,8 +236,10 @@ class ChoreService:
 
     def check_overdue(self):
         if self.get_days_left(self.state.current_chore)<0:
+            self.state.current_chore.overdue = True
             return True
         else:
+            self.state.current_chore.overdue = False
             return False
 
     def update_last_checked_time(self):
@@ -249,25 +252,32 @@ class ChoreService:
         #  Send reminder emails for incomplete chores
 
 
-        self.state.day_counter+=1
-        self.state.day_counter = self.state.day_counter%self.state.send_out_interval_in_days
+        # if it's a new day, increase counter
+        if self.state.last_checked.date() < datetime.now().date():
+            self.state.day_counter+=1
+            self.state.day_counter = self.state.day_counter%self.state.send_out_interval_in_days
+            self.state.reminder_sent_today = False
 
+        # regardless of counter, check mail
+
+        # if new mail came in, do something about it
+        # if it was a pass, it gets reassigned
+        # if it was a completion, it also gets put in queue for reassignment
         if self.state.current_chore:
-            is_chore_overdue = self.check_overdue()
-            is_chore_way_overdue = self.check_way_overdue()
             result = self.check_mail()
-            if(result == self.COMPLETED): #  if Chore was completed and say thank you
+            if(result == self.COMPLETED and self.state.current_chore): #  if Chore was completed and say thank you
                 self.send_thanks(self.state.current_chore)
                 self.state.days_left = self.complete_chore(self.state.current_chore)
                 if self.state.days_left<1:
                     self.send_new_chore(self.create_chore()) #  send out chore to new person if it's time
-            elif (is_chore_way_overdue and not self.state.day_counter) or (result == "Reassign"):
+            elif (self.check_way_overdue() and not self.state.day_counter and self.state.current_chore) or (result == "Reassign"):
                 self.send_reassign_notification(self.state.current_chore)
                 self.state.current_chore = None
                 self.send_new_chore(self.create_chore()) # reassign chore
-            elif is_chore_overdue and not self.state.day_counter:
+            elif self.check_overdue() and not self.state.day_counter:
                 self.send_overdue_reminder(self.state.current_chore)
-            elif not self.state.day_counter:
+            elif (self.state.day_counter == (self.state.send_out_interval_in_days-1)) and not self.state.reminder_sent_today:
+                self.state.reminder_sent_today = True
                 self.send_reminder(self.state.current_chore)
         else:
             self.state.days_left = self.state.days_left-1
