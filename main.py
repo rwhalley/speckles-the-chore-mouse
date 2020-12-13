@@ -185,7 +185,7 @@ class ChoreService:
         sender = f'From: Speckles T. Mouse <{self.state.login}>\n'
         to = f'To: <{chore.email}>\n'
         subject = f"Subject: REMINDER - {str(self.get_days_left(self.state.current_chore))} days left to {chore.chore_text} {str(chore.chore_id)}\n"
-        text = f'Did you complete the {chore.chore_text} challenge? I always eat the beans in the meantime! *PARRP* Respond with the word "Yes" to let your mouse overlord (me) know you crushed this motherf---BEEEP chore.\n'
+        text = f'Did you complete the {chore.chore_text} challenge? I always eat the beans in the meantime! *PARRP* \n\nRespond with the word "Yes" to let your mouse overlord (me) know you have completed this chore.\n'
 
         message = sender+to+subject+text
 
