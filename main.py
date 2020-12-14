@@ -215,8 +215,9 @@ class ChoreService:
     def send_new_chore(self,chore):
         sender = f'From: Speckles T. Mouse <{self.state.login}>\n'
         to = f'To: <{chore.email}>\n'
+        overdue_days = int(chore.chore_duration) + int(chore.chore_duration)
         subject = f"Subject: CONGRATULATIONS {chore.chore_text} {str(chore.chore_id)}\n"
-        text = f'WINNER!!!11 You have been selected to {chore.chore_text}. You are about to embark on a journey to clean Brambleberry before your mouse overlord (me) takes over the land. Do what it takes... ha ha \n\nYou have {str(chore.chore_duration)} days to complete this challenge! \n\nIn any case I will eat all your beans and cheez and all will be mine... \n\nNote: You do not have to reply to this email right now.\nYou will receive weekly reminders until you complete or reassign the chore.\nReply "yes" to this email when you complete this challenge... \nRespond "pass" to randomly reassign this chore to someone else if you are not going to be around.\nIf you wait {str(chore.chore_duration*2)} days, your chore will be considered way overdue and automatically be reassigned.'
+        text = f'WINNER!!!11 You have been selected to {chore.chore_text}. You are about to embark on a journey to clean Brambleberry before your mouse overlord (me) takes over the land. Do what it takes... ha ha \n\nYou have {str(chore.chore_duration)} days to complete this challenge! \n\nIn any case I will eat all your beans and cheez and all will be mine... \n\nNote: You do not have to reply to this email right now.\nYou will receive weekly reminders until you complete or reassign the chore.\nReply "yes" to this email when you complete this challenge... \nRespond "pass" to randomly reassign this chore to someone else if you are not going to be around.\nIf you wait {str(overdue_days)} days, your chore will be considered way overdue and automatically be reassigned.'
 
         message = sender+to+subject+text
 
